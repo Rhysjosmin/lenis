@@ -79,21 +79,21 @@ requestAnimationFrame(raf)
 
 ## Instance settings
 
-| Option               | Type                 | Default                                            | Description                                                                                                                                                         |
-|----------------------|----------------------|----------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `wrapper`            | `HTMLElement|Window` | `window`                                           | The element that will be used as the scroll container                                                                                                               |
-| `content`            | `HTMLElement`        | `document.documentElement`                         | The element that contains the content that will be scrolled, usually `wrapper`'s direct child                                                                       |
-| `lerp`               | `number`             | `0.1`                                              | Linear interpolation (lerp) intensity (between 0 and 1)                                                                                                             |
-| `duration`           | `number`             | `1.2`                                              | The duration of scroll animation (in seconds). Useless if lerp defined                                                                                              |
-| `easing`             | `function`           | `(t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))` | The easing function to use for the scroll animation, our default is custom but you can pick one from [Easings.net](https://easings.net/en). Useless if lerp defined |
-| `orientation`        | `string`             | `vertical`                                         | The orientation of the scrolling. Can be `vertical` or `horizontal`                                                                                                 |
-| `gestureOrientation` | `string`             | `vertical`                                         | The orientation of the gestures. Can be `vertical`, `horizontal` or `both`                                                                                          |
-| `smoothWheel`        | `boolean`            | `true`                                             | Whether or not to enable smooth scrolling for mouse wheel events                                                                                                    |
-| `smoothTouch`        | `boolean`            | `false`                                            | Whether or not to enable smooth scrolling for touch events. Note: We have disabled it by default because touch devices' native smoothness is impossible to mimic    |
-| `wheelMultiplier`    | `number`             | `1`                                                | The multiplier to use for mouse wheel events                                                                                                                        |
-| `touchMultiplier`    | `number`             | `2`                                                | The multiplier to use for touch events                                                                                                                              |
-| `normalizeWheel`     | `boolean`            | `true`                                             | Normalize wheel inputs across browsers                                                                                                                              |
-| `infinite`           | `boolean`            | `false`                                            | Enable infinite scrolling!                                                                                                                                          |
+| Option               | Type                    | Default                                            | Description                                                                                                                                                         |
+|----------------------|-------------------------|----------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `wrapper`            | `HTMLElement  | Window` | `window`                                           | The element that will be used as the scroll container                                                                                                               |
+| `content`            | `HTMLElement`           | `document.documentElement`                         | The element that contains the content that will be scrolled, usually `wrapper`'s direct child                                                                       |
+| `lerp`               | `number`                | `0.1`                                              | Linear interpolation (lerp) intensity (between 0 and 1)                                                                                                             |
+| `duration`           | `number`                | `1.2`                                              | The duration of scroll animation (in seconds). Useless if lerp defined                                                                                              |
+| `easing`             | `function`              | `(t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))` | The easing function to use for the scroll animation, our default is custom but you can pick one from [Easings.net](https://easings.net/en). Useless if lerp defined |
+| `orientation`        | `string`                | `vertical`                                         | The orientation of the scrolling. Can be `vertical` or `horizontal`                                                                                                 |
+| `gestureOrientation` | `string`                | `vertical`                                         | The orientation of the gestures. Can be `vertical`, `horizontal` or `both`                                                                                          |
+| `smoothWheel`        | `boolean`               | `true`                                             | Whether or not to enable smooth scrolling for mouse wheel events                                                                                                    |
+| `smoothTouch`        | `boolean`               | `false`                                            | Whether or not to enable smooth scrolling for touch events. Note: We have disabled it by default because touch devices' native smoothness is impossible to mimic    |
+| `wheelMultiplier`    | `number`                | `1`                                                | The multiplier to use for mouse wheel events                                                                                                                        |
+| `touchMultiplier`    | `number`                | `2`                                                | The multiplier to use for touch events                                                                                                                              |
+| `normalizeWheel`     | `boolean`               | `true`                                             | Normalize wheel inputs across browsers                                                                                                                              |
+| `infinite`           | `boolean`               | `false`                                            | Enable infinite scrolling!                                                                                                                                          |
 
 <br/>
 
@@ -150,7 +150,7 @@ html.lenis {
 }
 ```
 
-#### Use the `data-lenis-prevent` attribute on nested scroll elements. In addition, we advise you to add `overscroll-behavior: contain` on this element
+#### Use the `data-lenis-prevent` attribute on nested scroll elements. In addition, we advise you to add `overscroll-behavior: contain` to it.
 
 ```html
 <div data-lenis-prevent>scroll content</div>
@@ -161,6 +161,9 @@ html.lenis {
   overscroll-behavior: contain;
 }
 ```
+
+ [Check this Codepen to see this implemented](https://codepen.io/ClementRoche/pen/VwxgZEP).
+
 
 #### Manually use `lenis.scrollTo('#anchor')` on anchor link click ([see issue](https://github.com/studio-freight/lenis/issues/19))
 
@@ -188,7 +191,7 @@ gsap.ticker.add((time)=>{
 
 ## Limitations
 
-- no support for CSS scroll-snap
+- no support for CSS scroll-snap (yet)
 - capped to 60fps on Safari ([source](https://bugs.webkit.org/show_bug.cgi?id=173434))
 - smooth scroll will stop working over iframe since they don't forward wheel events
 - position fixed seems to lag on MacOS Safari pre-M1 ([source](https://github.com/studio-freight/lenis/issues/103))
@@ -204,11 +207,9 @@ gsap.ticker.add((time)=>{
 
 <br>
 
-
-
 ## Plugins
 
--[react-lenis](https://github.com/studio-freight/react-lenis)
+- [react-lenis](https://github.com/studio-freight/react-lenis) by [Studio Freight](https://www.studiofreight.com/)
 - [Loconative-scroll](https://github.com/quentinhocde/loconative-scroll#how-to-switch-from-locomotive-scroll-to-loconative-scroll) by [Quentin Hocde](https://twitter.com/QuentinHocde)
 
 <br>
@@ -216,19 +217,14 @@ gsap.ticker.add((time)=>{
 ## Lenis in use
 
 - [Wyre](https://www.sendwyre.com/) by [Studio Freight](https://www.studiofreight.com/)
-- [Lunchbox](https://lunchbox.io/) by [Studio Freight](https://www.studiofreight.com/)
-- [Easol](https://easol.com/) by [Studio Freight](https://www.studiofreight.com/)
 - [Repeat](https://getrepeat.io/) by [Studio Freight](https://www.studiofreight.com/)
 - [Dragonfly](https://dragonfly.xyz/) by [Studio Freight](https://www.studiofreight.com/)
+- [DeSo](https://deso.com/) by [Studio Freight](https://www.studiofreight.com/)
+- [Mana Yerba Mate](https://manayerbamate.com/) by [Louis Paquet](https://twitter.com/lpaquet83)
 - [Yuga Labs](https://yuga.com/) by [Antinomy Studio](https://antinomy.studio/)
 - [Quentin Hocde's Portfolio](https://quentinhocde.com) by [Quentin Hocde](https://twitter.com/QuentinHocde)
 - [Houses Of](https://housesof.world) by [Félix P.](https://flayks.com/) & [Shelby Kay](https://shelbykay.dev/)
-- [Shelby Kay's Portfolio](https://shelbykay.dev) by [Shelby Kay](https://shelbykay.dev/)
-- [Heights Agency Portfolio](https://www.heights.agency/) by [Francesco Michelini](https://www.francescomichelini.com/)
 - [Goodship](https://goodship.io) by [Studio Freight](https://www.studiofreight.com/)
-- [Flayks' Portfolio](https://flayks.com) by [Félix P.](https://flayks.com/) & [Shelby Kay](https://shelbykay.dev/)
-- [Matt Rothenberg's portfolio](https://mattrothenberg.com) by [Matt Rothenberg](https://twitter.com/mattrothenberg)
-- [Edoardo Lunardi's portfolio](https://www.edoardolunardi.dev/) by [Edoardo Lunardi](https://www.edoardolunardi.dev/)
 
 <br/>
 
