@@ -169,7 +169,7 @@ export default class Lenis {
     }
   }
 
-  onVirtualScroll({ type, deltaX, deltaY, event }) {
+  onVirtualScroll = ({ type, deltaX, deltaY, event }) => {
     // keep zoom feature
     if (event.ctrlKey) return
 
@@ -219,7 +219,7 @@ export default class Lenis {
     this.emitter.emit('scroll', this)
   }
 
-  onScroll() {
+  onScroll = () => {
     if (!this.isScrolling) {
       const lastScroll = this.animatedScroll
       this.animatedScroll = this.targetScroll = this.actualScroll
@@ -365,16 +365,16 @@ export default class Lenis {
     })
   }
 
-  registerPlugin(plugin) {
+  registerPlugin = (plugin, options) => {
     if (typeof plugin !== 'function') {
       throw new Error('Plugin must be a function')
     }
-    this.plugins.push(plugin)
+    this.plugins.push({ plugin, options })
   }
 
-  initializePlugins() {
-    this.plugins.forEach((plugin) => {
-      plugin(this)
+  initializePlugins = () => {
+    this.plugins.forEach(({ plugin, options }) => {
+      plugin(this, options)
     })
   }
 
