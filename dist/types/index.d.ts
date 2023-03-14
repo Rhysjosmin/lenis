@@ -77,19 +77,20 @@ export default class Lenis {
         emit(event: any, ...args: any[]): void;
         on(event: any, cb: any): () => void;
     };
+    plugins: any[];
     virtualScroll: VirtualScroll;
     destroy(): void;
     on(event: any, callback: any): () => void;
     off(event: any, callback: any): void;
     setScroll(scroll: any): void;
-    onVirtualScroll: ({ type, deltaX, deltaY, event }: {
+    onVirtualScroll({ type, deltaX, deltaY, event }: {
         type: any;
         deltaX: any;
         deltaY: any;
         event: any;
-    }) => void;
+    }): void;
     emit(): void;
-    onScroll: () => void;
+    onScroll(): void;
     direction: number;
     reset(): void;
     isLocked: boolean;
@@ -108,6 +109,8 @@ export default class Lenis {
         force?: boolean;
         programmatic?: boolean;
     }): void;
+    registerPlugin(plugin: any): void;
+    initializePlugins(): void;
     get rootElement(): any;
     get limit(): number;
     get isHorizontal(): boolean;

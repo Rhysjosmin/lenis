@@ -5,6 +5,6 @@ export class ObservedElement {
     height: any;
     resizeObserver: ResizeObserver;
     destroy(): void;
-    onResize: ([entry]: [any]) => void;
-    onWindowResize: () => void;
+    onResize([entry]: [any]): void;
+    onWindowResize(): void;
 }

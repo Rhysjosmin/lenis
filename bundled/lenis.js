@@ -35,25 +35,34 @@
     return typeof key === "symbol" ? key : String(key);
   }
 
-  var version = "1.0.0";
+  var version = "1.0.1";
 
+  // Clamp a value between a minimum and maximum value
   function clamp(min, input, max) {
     return Math.max(min, Math.min(input, max));
   }
+
+  // Linearly interpolate between two values using an amount (0 <= amt <= 1)
   function lerp(start, end, amt) {
     return (1 - amt) * start + amt * end;
   }
+
+  // Calculate the modulo of the dividend and divisor while keeping the result within the same sign as the divisor
   function clampedModulo(dividend, divisor) {
     var remainder = dividend % divisor;
+
+    // If the remainder and divisor have different signs, adjust the remainder
     if (divisor > 0 && remainder < 0 || divisor < 0 && remainder > 0) {
-      remainder += divisor;
+      return remainder + divisor;
     }
     return remainder;
   }
 
+  // Animate class to handle value animations with lerping or easing
   var Animate = /*#__PURE__*/function () {
     function Animate() {}
     var _proto = Animate.prototype;
+    // Advance the animation by the given delta time
     _proto.advance = function advance(deltaTime) {
       var _this$onUpdate;
       if (!this.isRunning) return;
@@ -71,16 +80,25 @@
         var easedProgress = completed ? 1 : this.easing(linearProgress);
         this.value = this.from + (this.to - this.from) * easedProgress;
       }
+
+      // Call the onUpdate callback with the current value and completed status
       (_this$onUpdate = this.onUpdate) == null ? void 0 : _this$onUpdate.call(this, this.value, {
         completed: completed
       });
       if (completed) {
         this.stop();
       }
-    };
+    }
+
+    // Stop the animation
+    ;
     _proto.stop = function stop() {
       this.isRunning = false;
-    };
+    }
+
+    // Set up the animation from a starting value to an ending value
+    // with optional parameters for lerping, duration, easing, and onUpdate callback
+    ;
     _proto.fromTo = function fromTo(from, to, _ref) {
       var _ref$lerp = _ref.lerp,
         lerp = _ref$lerp === void 0 ? 0.1 : _ref$lerp,
@@ -106,19 +124,23 @@
   var createNanoEvents = function createNanoEvents() {
     return {
       events: {},
+      // Emit an event with the provided arguments
       emit: function emit(event) {
         var callbacks = this.events[event] || [];
         for (var i = 0, length = callbacks.length; i < length; i++) {
           callbacks[i].apply(callbacks, [].slice.call(arguments, 1));
         }
       },
+      // Register a callback for the specified event
       on: function on(event, cb) {
-        var _this$events$event,
+        var _this$events,
+          _this$events$event,
           _this = this;
-        ((_this$events$event = this.events[event]) == null ? void 0 : _this$events$event.push(cb)) || (this.events[event] = [cb]);
+        ((_this$events$event = (_this$events = this.events)[event]) != null ? _this$events$event : _this$events[event] = []).push(cb);
+
+        // Return an unsubscribe function
         return function () {
-          var _this$events$event2;
-          _this.events[event] = (_this$events$event2 = _this.events[event]) == null ? void 0 : _this$events$event2.filter(function (i) {
+          _this.events[event] = _this.events[event].filter(function (i) {
             return cb !== i;
           });
         };
@@ -128,36 +150,46 @@
 
   var ObservedElement = /*#__PURE__*/function () {
     function ObservedElement(element) {
-      var _this = this;
-      this.onResize = function (_ref) {
-        var entry = _ref[0];
-        if (entry) {
-          var _entry$contentRect = entry.contentRect,
-            width = _entry$contentRect.width,
-            height = _entry$contentRect.height;
-          _this.width = width;
-          _this.height = height;
-        }
-      };
-      this.onWindowResize = function () {
-        _this.width = window.innerWidth;
-        _this.height = window.innerHeight;
-      };
       this.element = element;
+
+      // If the element is the window, add a resize event listener and trigger it initially
       if (element === window) {
-        window.addEventListener('resize', this.onWindowResize);
+        window.addEventListener('resize', this.onWindowResize.bind(this));
         this.onWindowResize();
       } else {
+        // If the element is not the window, observe its size using ResizeObserver
         this.width = this.element.offsetWidth;
         this.height = this.element.offsetHeight;
-        this.resizeObserver = new ResizeObserver(this.onResize);
+        this.resizeObserver = new ResizeObserver(this.onResize.bind(this));
         this.resizeObserver.observe(this.element);
       }
     }
+
+    // Clean up event listeners and disconnect the ResizeObserver when destroying the instance
     var _proto = ObservedElement.prototype;
     _proto.destroy = function destroy() {
-      window.removeEventListener('resize', this.onWindowResize);
+      window.removeEventListener('resize', this.onWindowResize.bind(this));
       this.resizeObserver.disconnect();
+    }
+
+    // Update the width and height properties based on the observed element's size
+    ;
+    _proto.onResize = function onResize(_ref) {
+      var entry = _ref[0];
+      if (entry) {
+        var _entry$contentRect = entry.contentRect,
+          width = _entry$contentRect.width,
+          height = _entry$contentRect.height;
+        this.width = width;
+        this.height = height;
+      }
+    }
+
+    // Update the width and height properties based on the window's size
+    ;
+    _proto.onWindowResize = function onWindowResize() {
+      this.width = window.innerWidth;
+      this.height = window.innerHeight;
     };
     return ObservedElement;
   }();
@@ -171,6 +203,7 @@
         touchMultiplier = _ref$touchMultiplier === void 0 ? 2 : _ref$touchMultiplier,
         _ref$normalizeWheel = _ref.normalizeWheel,
         normalizeWheel = _ref$normalizeWheel === void 0 ? false : _ref$normalizeWheel;
+      // Event handler for 'touchstart' event
       this.onTouchStart = function (event) {
         var _ref2 = event.targetTouches ? event.targetTouches[0] : event,
           pageX = _ref2.pageX,
@@ -178,6 +211,7 @@
         _this.touchStart.x = pageX;
         _this.touchStart.y = pageY;
       };
+      // Event handler for 'touchmove' event
       this.onTouchMove = function (event) {
         var _ref3 = event.targetTouches ? event.targetTouches[0] : event,
           pageX = _ref3.pageX,
@@ -193,6 +227,7 @@
           event: event
         });
       };
+      // Event handler for 'wheel' event
       this.onWheel = function (event) {
         var deltaX = event.deltaX,
           deltaY = event.deltaY;
@@ -228,10 +263,15 @@
         passive: false
       });
     }
+
+    // Add an event listener for the given event and callback
     var _proto = VirtualScroll.prototype;
     _proto.on = function on(event, callback) {
       return this.emitter.on(event, callback);
-    };
+    }
+
+    // Remove all event listeners and clean up
+    ;
     _proto.destroy = function destroy() {
       this.emitter.events = {};
       this.element.removeEventListener('wheel', this.onWheel, {
@@ -288,7 +328,6 @@
      * @param {LenisOptions}
      */
     function Lenis(_temp) {
-      var _this = this;
       var _ref = _temp === void 0 ? {} : _temp,
         direction = _ref.direction,
         gestureDirection = _ref.gestureDirection,
@@ -321,51 +360,6 @@
         wheelMultiplier = _ref$wheelMultiplier === void 0 ? mouseMultiplier != null ? mouseMultiplier : 1 : _ref$wheelMultiplier,
         _ref$normalizeWheel = _ref.normalizeWheel,
         normalizeWheel = _ref$normalizeWheel === void 0 ? true : _ref$normalizeWheel;
-      this.onVirtualScroll = function (_ref2) {
-        var type = _ref2.type,
-          deltaX = _ref2.deltaX,
-          deltaY = _ref2.deltaY,
-          event = _ref2.event;
-        // keep zoom feature
-        if (event.ctrlKey) return;
-
-        // keep previous/next page gesture on trackpads
-        if (_this.options.gestureOrientation === 'vertical' && deltaY === 0 || _this.options.gestureOrientation === 'horizontal' && deltaX === 0) return;
-
-        // catch if scrolling on nested scroll elements
-        if (!!event.composedPath().find(function (node) {
-          return node == null ? void 0 : node.hasAttribute == null ? void 0 : node.hasAttribute('data-lenis-prevent');
-        })) return;
-        if (_this.isStopped || _this.isLocked) {
-          event.preventDefault();
-          return;
-        }
-        _this.isSmooth = _this.options.smoothTouch && type === 'touch' || _this.options.smoothWheel && type === 'wheel';
-        if (!_this.isSmooth) {
-          _this.isScrolling = false;
-          _this.animate.stop();
-          return;
-        }
-        event.preventDefault();
-        var delta = deltaY;
-        if (_this.options.gestureOrientation === 'both') {
-          delta = Math.abs(deltaY) > Math.abs(deltaX) ? deltaY : deltaX;
-        } else if (_this.options.gestureOrientation === 'horizontal') {
-          delta = deltaX;
-        }
-        _this.scrollTo(_this.targetScroll + delta, {
-          programmatic: false
-        });
-      };
-      this.onScroll = function () {
-        if (!_this.isScrolling) {
-          var lastScroll = _this.animatedScroll;
-          _this.animatedScroll = _this.targetScroll = _this.actualScroll;
-          _this.velocity = 0;
-          _this.direction = Math.sign(_this.animatedScroll - lastScroll);
-          _this.emit();
-        }
-      };
       // warn about legacy options
       if (direction) {
         console.warn('Lenis: `direction` option is deprecated, use `orientation` instead');
@@ -410,6 +404,7 @@
       this.targetScroll = this.animatedScroll = this.actualScroll;
       this.animate = new Animate();
       this.emitter = createNanoEvents();
+      this.plugins = [];
       this.wrapper.element.addEventListener('scroll', this.onScroll, {
         passive: false
       });
@@ -419,6 +414,7 @@
         normalizeWheel: normalizeWheel
       });
       this.virtualScroll.on('scroll', this.onVirtualScroll);
+      this.initializePlugins();
     }
     var _proto = Lenis.prototype;
     _proto.destroy = function destroy() {
@@ -445,8 +441,53 @@
         this.rootElement.scrollTop = scroll;
       }
     };
+    _proto.onVirtualScroll = function onVirtualScroll(_ref2) {
+      var type = _ref2.type,
+        deltaX = _ref2.deltaX,
+        deltaY = _ref2.deltaY,
+        event = _ref2.event;
+      // keep zoom feature
+      if (event.ctrlKey) return;
+
+      // keep previous/next page gesture on trackpads
+      if (this.options.gestureOrientation === 'vertical' && deltaY === 0 || this.options.gestureOrientation === 'horizontal' && deltaX === 0) return;
+
+      // catch if scrolling on nested scroll elements
+      if (!!event.composedPath().find(function (node) {
+        return node == null ? void 0 : node.hasAttribute == null ? void 0 : node.hasAttribute('data-lenis-prevent');
+      })) return;
+      if (this.isStopped || this.isLocked) {
+        event.preventDefault();
+        return;
+      }
+      this.isSmooth = this.options.smoothTouch && type === 'touch' || this.options.smoothWheel && type === 'wheel';
+      if (!this.isSmooth) {
+        this.isScrolling = false;
+        this.animate.stop();
+        return;
+      }
+      event.preventDefault();
+      var delta = deltaY;
+      if (this.options.gestureOrientation === 'both') {
+        delta = Math.abs(deltaY) > Math.abs(deltaX) ? deltaY : deltaX;
+      } else if (this.options.gestureOrientation === 'horizontal') {
+        delta = deltaX;
+      }
+      this.scrollTo(this.targetScroll + delta, {
+        programmatic: false
+      });
+    };
     _proto.emit = function emit() {
       this.emitter.emit('scroll', this);
+    };
+    _proto.onScroll = function onScroll() {
+      if (!this.isScrolling) {
+        var lastScroll = this.animatedScroll;
+        this.animatedScroll = this.targetScroll = this.actualScroll;
+        this.velocity = 0;
+        this.direction = Math.sign(this.animatedScroll - lastScroll);
+        this.emit();
+      }
     };
     _proto.reset = function reset() {
       this.isLocked = false;
@@ -468,7 +509,7 @@
       this.animate.advance(deltaTime * 0.001);
     };
     _proto.scrollTo = function scrollTo(target, _temp2) {
-      var _this2 = this;
+      var _this = this;
       var _ref3 = _temp2 === void 0 ? {} : _temp2,
         _ref3$offset = _ref3.offset,
         offset = _ref3$offset === void 0 ? 0 : _ref3$offset,
@@ -543,31 +584,43 @@
         onUpdate: function onUpdate(value, _ref4) {
           var completed = _ref4.completed;
           // started
-          if (lock) _this2.isLocked = true;
-          _this2.isScrolling = true;
+          if (lock) _this.isLocked = true;
+          _this.isScrolling = true;
 
           // updated
-          _this2.velocity = value - _this2.animatedScroll;
-          _this2.direction = Math.sign(_this2.velocity);
-          _this2.animatedScroll = value;
-          _this2.setScroll(_this2.scroll);
+          _this.velocity = value - _this.animatedScroll;
+          _this.direction = Math.sign(_this.velocity);
+          _this.animatedScroll = value;
+          _this.setScroll(_this.scroll);
           if (programmatic) {
             // wheel during programmatic should stop it
-            _this2.targetScroll = value;
+            _this.targetScroll = value;
           }
 
           // completed
           if (completed) {
-            if (lock) _this2.isLocked = false;
+            if (lock) _this.isLocked = false;
             requestAnimationFrame(function () {
               //avoid double scroll event
-              _this2.isScrolling = false;
+              _this.isScrolling = false;
             });
-            _this2.velocity = 0;
+            _this.velocity = 0;
             onComplete == null ? void 0 : onComplete();
           }
-          _this2.emit();
+          _this.emit();
         }
+      });
+    };
+    _proto.registerPlugin = function registerPlugin(plugin) {
+      if (typeof plugin !== 'function') {
+        throw new Error('Plugin must be a function');
+      }
+      this.plugins.push(plugin);
+    };
+    _proto.initializePlugins = function initializePlugins() {
+      var _this2 = this;
+      this.plugins.forEach(function (plugin) {
+        plugin(_this2);
       });
     };
     _createClass(Lenis, [{

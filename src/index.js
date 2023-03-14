@@ -136,6 +136,8 @@ export default class Lenis {
       normalizeWheel,
     })
     this.virtualScroll.on('scroll', this.onVirtualScroll)
+
+    this.initializePlugins()
   }
 
   destroy() {
@@ -167,7 +169,7 @@ export default class Lenis {
     }
   }
 
-  onVirtualScroll = ({ type, deltaX, deltaY, event }) => {
+  onVirtualScroll({ type, deltaX, deltaY, event }) {
     // keep zoom feature
     if (event.ctrlKey) return
 
@@ -217,7 +219,7 @@ export default class Lenis {
     this.emitter.emit('scroll', this)
   }
 
-  onScroll = () => {
+  onScroll() {
     if (!this.isScrolling) {
       const lastScroll = this.animatedScroll
       this.animatedScroll = this.targetScroll = this.actualScroll
@@ -443,6 +445,4 @@ export default class Lenis {
       this.__isStopped = value
     }
   }
-
-  this.initializePlugins()
 }
