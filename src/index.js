@@ -124,6 +124,7 @@ export default class Lenis {
     this.targetScroll = this.animatedScroll = this.actualScroll
     this.animate = new Animate()
     this.emitter = createNanoEvents()
+    this.plugins = []
 
     this.wrapper.element.addEventListener('scroll', this.onScroll, {
       passive: false,
@@ -362,6 +363,19 @@ export default class Lenis {
     })
   }
 
+  registerPlugin(plugin) {
+    if (typeof plugin !== 'function') {
+      throw new Error('Plugin must be a function')
+    }
+    this.plugins.push(plugin)
+  }
+
+  initializePlugins() {
+    this.plugins.forEach((plugin) => {
+      plugin(this)
+    })
+  }
+
   get rootElement() {
     return this.wrapper.element === window
       ? this.content.element
@@ -429,4 +443,6 @@ export default class Lenis {
       this.__isStopped = value
     }
   }
+
+  this.initializePlugins()
 }
