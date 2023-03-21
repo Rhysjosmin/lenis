@@ -32,7 +32,9 @@ export function Layout({
 
   useEffect(() => {
     window.scrollTo(0, 0)
-    const lenis = new Lenis()
+    const lenis = new Lenis({
+      element: document.querySelector('#main'),
+    })
     window.lenis = lenis
     setLenis(lenis)
 
@@ -101,7 +103,9 @@ export function Layout({
         <Intro />
         <Cursor />
         <Scrollbar />
-        <main className={s.main}>{children}</main>
+        <main className={s.main} id="main">
+          {children}
+        </main>
         <Footer />
       </div>
     </>

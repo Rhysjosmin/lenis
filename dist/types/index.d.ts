@@ -26,7 +26,7 @@ export default class Lenis {
      *
      * @param {LenisOptions}
      */
-    constructor({ direction, gestureDirection, mouseMultiplier, smooth, wrapper, content, smoothWheel, smoothTouch, duration, easing, lerp, infinite, orientation, gestureOrientation, touchMultiplier, wheelMultiplier, normalizeWheel, }?: {
+    constructor({ direction, gestureDirection, mouseMultiplier, smooth, wrapper, element, smoothWheel, smoothTouch, duration, easing, lerp, infinite, orientation, gestureOrientation, touchMultiplier, wheelMultiplier, normalizeWheel, }?: {
         direction?: "vertical" | "horizontal";
         gestureDirection?: "vertical" | "horizontal" | "both";
         mouseMultiplier?: number;
@@ -46,8 +46,7 @@ export default class Lenis {
         normalizeWheel?: boolean;
     });
     options: {
-        wrapper: Window | HTMLElement;
-        content: HTMLElement;
+        element: any;
         smoothWheel: boolean;
         smoothTouch: boolean;
         duration: number;
@@ -60,8 +59,7 @@ export default class Lenis {
         wheelMultiplier: number;
         normalizeWheel: boolean;
     };
-    wrapper: ObservedElement;
-    content: ObservedElement;
+    wrapper: Wrapper;
     velocity: number;
     set isStopped(arg: any);
     get isStopped(): any;
@@ -108,7 +106,7 @@ export default class Lenis {
         force?: boolean;
         programmatic?: boolean;
     }): void;
-    get rootElement(): any;
+    get isRoot(): boolean;
     get limit(): number;
     get isHorizontal(): boolean;
     get actualScroll(): any;
@@ -118,6 +116,6 @@ export default class Lenis {
     __isScrolling: any;
     __isStopped: any;
 }
-import { ObservedElement } from "./observed-element";
+import { Wrapper } from "./wrapper";
 import { Animate } from "./animate";
 import { VirtualScroll } from "./virtual-scroll";

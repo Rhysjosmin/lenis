@@ -149,49 +149,6 @@
     };
   };
 
-  var ObservedElement = /*#__PURE__*/function () {
-    function ObservedElement(element) {
-      var _this = this;
-      // Update the width and height properties based on the observed element's size
-      this.onResize = function (_ref) {
-        var entry = _ref[0];
-        if (entry) {
-          var _entry$contentRect = entry.contentRect,
-            width = _entry$contentRect.width,
-            height = _entry$contentRect.height;
-          _this.width = width;
-          _this.height = height;
-        }
-      };
-      // Update the width and height properties based on the window's size
-      this.onWindowResize = function () {
-        _this.width = window.innerWidth;
-        _this.height = window.innerHeight;
-      };
-      this.element = element;
-
-      // If the element is the window, add a resize event listener and trigger it initially
-      if (element === window) {
-        window.addEventListener('resize', this.onWindowResize);
-        this.onWindowResize();
-      } else {
-        // If the element is not the window, observe its size using ResizeObserver
-        this.width = this.element.offsetWidth;
-        this.height = this.element.offsetHeight;
-        this.resizeObserver = new ResizeObserver(this.onResize);
-        this.resizeObserver.observe(this.element);
-      }
-    }
-
-    // Clean up event listeners and disconnect the ResizeObserver when destroying the instance
-    var _proto = ObservedElement.prototype;
-    _proto.destroy = function destroy() {
-      window.removeEventListener('resize', this.onWindowResize);
-      this.resizeObserver.disconnect();
-    };
-    return ObservedElement;
-  }();
-
   var VirtualScroll = /*#__PURE__*/function () {
     function VirtualScroll(element, _ref) {
       var _this = this;
@@ -285,6 +242,67 @@
     return VirtualScroll;
   }();
 
+  function throttle(callback, delay) {
+    var last;
+    var timer;
+    return function () {
+      var context = this;
+      var now = +new Date();
+      var args = arguments;
+      if (last && now < last + delay) {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          last = now;
+          callback.apply(context, args);
+        }, delay);
+      } else {
+        last = now;
+        callback.apply(context, args);
+      }
+    };
+  }
+
+  var Wrapper = /*#__PURE__*/function () {
+    function Wrapper(element) {
+      var _this = this;
+      this.onResize = function () {
+        console.log('onResize');
+        if (_this.root) {
+          _this.clientWidth = window.innerWidth;
+          _this.clientHeight = window.innerHeight;
+        } else {
+          _this.clientWidth = _this.element.clientWidth;
+          _this.clientHeight = _this.element.clientHeight;
+        }
+        _this.scrollWidth = _this.element.scrollWidth;
+        _this.scrollHeight = _this.element.scrollHeight;
+      };
+      this.element = element;
+      this.resizeObserver = new ResizeObserver(throttle(this.onResize, 100));
+      this.resizeObserver.observe(this.element);
+      this.onResize();
+    }
+    var _proto = Wrapper.prototype;
+    _proto.destroy = function destroy() {
+      this.resizeObserver.disconnect();
+    };
+    _createClass(Wrapper, [{
+      key: "isRoot",
+      get: function get() {
+        return this.element === document.documentElement || this.element === document.body;
+      }
+    }, {
+      key: "limit",
+      get: function get() {
+        return {
+          x: this.scrollWidth - this.clientWidth,
+          y: this.scrollHeight - this.clientHeight
+        };
+      }
+    }]);
+    return Wrapper;
+  }();
+
   // Technical explaination
   // - listen to 'wheel' events
   // - prevent 'wheel' event to prevent scroll
@@ -333,9 +351,9 @@
         mouseMultiplier = _ref.mouseMultiplier,
         smooth = _ref.smooth,
         _ref$wrapper = _ref.wrapper,
-        wrapper = _ref$wrapper === void 0 ? window : _ref$wrapper,
-        _ref$content = _ref.content,
-        content = _ref$content === void 0 ? document.documentElement : _ref$content,
+        wrapper = _ref$wrapper === void 0 ? document.documentElement : _ref$wrapper,
+        _ref$element = _ref.element,
+        element = _ref$element === void 0 ? wrapper != null ? wrapper : document.documentElement : _ref$element,
         _ref$smoothWheel = _ref.smoothWheel,
         smoothWheel = _ref$smoothWheel === void 0 ? smooth != null ? smooth : true : _ref$smoothWheel,
         _ref$smoothTouch = _ref.smoothTouch,
@@ -418,14 +436,8 @@
         console.warn('Lenis: `smooth` option is deprecated, use `smoothWheel` instead');
       }
       window.lenisVersion = version;
-
-      // if wrapper is html or body, fallback to window
-      if (wrapper === document.documentElement || wrapper === document.body) {
-        wrapper = window;
-      }
       this.options = {
-        wrapper: wrapper,
-        content: content,
+        element: element,
         smoothWheel: smoothWheel,
         smoothTouch: smoothTouch,
         duration: duration,
@@ -438,9 +450,8 @@
         wheelMultiplier: wheelMultiplier,
         normalizeWheel: normalizeWheel
       };
-      this.wrapper = new ObservedElement(wrapper);
-      this.content = new ObservedElement(content);
-      this.rootElement.classList.add('lenis');
+      this.wrapper = new Wrapper(element);
+      this.wrapper.element.classList.add('lenis');
       this.velocity = 0;
       this.isStopped = false;
       this.isSmooth = smoothWheel || smoothTouch;
@@ -451,7 +462,7 @@
       this.wrapper.element.addEventListener('scroll', this.onScroll, {
         passive: false
       });
-      this.virtualScroll = new VirtualScroll(wrapper, {
+      this.virtualScroll = new VirtualScroll(this.isRoot ? window : this.wrapper.element, {
         touchMultiplier: touchMultiplier,
         wheelMultiplier: wheelMultiplier,
         normalizeWheel: normalizeWheel
@@ -477,16 +488,13 @@
     };
     _proto.setScroll = function setScroll(scroll) {
       // apply scroll value immediately
-      if (this.isHorizontal) {
-        this.rootElement.scrollLeft = scroll;
-      } else {
-        this.rootElement.scrollTop = scroll;
-      }
+      this.wrapper.element[this.isHorizontal ? 'scrollLeft' : 'scrollTop'] = scroll;
     };
     _proto.emit = function emit() {
       this.emitter.emit('scroll', this);
     };
     _proto.reset = function reset() {
+      this.animate.stop();
       this.isLocked = false;
       this.isScrolling = false;
       this.velocity = 0;
@@ -543,7 +551,7 @@
           node = target;
         }
         if (node) {
-          if (this.wrapper.element !== window) {
+          if (!this.isRoot) {
             // nested scroll offset correction
             var wrapperRect = this.wrapper.element.getBoundingClientRect();
             offset -= this.isHorizontal ? wrapperRect.left : wrapperRect.top;
@@ -565,7 +573,6 @@
       if (immediate) {
         this.animatedScroll = this.targetScroll = target;
         this.setScroll(this.scroll);
-        this.animate.stop();
         this.reset();
         this.emit();
         onComplete == null ? void 0 : onComplete();
@@ -609,14 +616,14 @@
       });
     };
     _createClass(Lenis, [{
-      key: "rootElement",
+      key: "isRoot",
       get: function get() {
-        return this.wrapper.element === window ? this.content.element : this.wrapper.element;
+        return this.wrapper.element === document.documentElement || this.wrapper.element === document.body;
       }
     }, {
       key: "limit",
       get: function get() {
-        return Math.round(this.isHorizontal ? this.content.width - this.wrapper.width : this.content.height - this.wrapper.height);
+        return this.wrapper.limit[this.isHorizontal ? 'x' : 'y'];
       }
     }, {
       key: "isHorizontal",
@@ -627,7 +634,7 @@
       key: "actualScroll",
       get: function get() {
         // value browser takes into account
-        return this.isHorizontal ? this.rootElement.scrollLeft : this.rootElement.scrollTop;
+        return this.wrapper.element[this.isHorizontal ? 'scrollLeft' : 'scrollTop'];
       }
     }, {
       key: "scroll",
@@ -646,7 +653,7 @@
       },
       set: function set(value) {
         if (this.__isSmooth !== value) {
-          this.rootElement.classList.toggle('lenis-smooth', value);
+          this.wrapper.element.classList.toggle('lenis-smooth', value);
           this.__isSmooth = value;
         }
       }
@@ -657,7 +664,7 @@
       },
       set: function set(value) {
         if (this.__isScrolling !== value) {
-          this.rootElement.classList.toggle('lenis-scrolling', value);
+          this.wrapper.element.classList.toggle('lenis-scrolling', value);
           this.__isScrolling = value;
         }
       }
@@ -668,7 +675,7 @@
       },
       set: function set(value) {
         if (this.__isStopped !== value) {
-          this.rootElement.classList.toggle('lenis-stopped', value);
+          this.wrapper.element.classList.toggle('lenis-stopped', value);
           this.__isStopped = value;
         }
       }

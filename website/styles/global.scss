@@ -84,3 +84,13 @@ svg.icon {
 .intro {
   overflow: hidden;
 }
+
+html,
+body {
+  overflow: hidden;
+}
+
+#main {
+  height: 100vh;
+  overflow: auto;
+}
