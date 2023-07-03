@@ -3,7 +3,6 @@ import { Animate } from './animate'
 import { Dimensions } from './dimensions'
 import { Emitter } from './emitter'
 import { clamp, modulo } from './maths'
-import { OverflowObserver } from './overflow-observer'
 import { VirtualScroll } from './virtual-scroll'
 
 // Technical explaination
@@ -128,10 +127,13 @@ export default class Lenis {
     })
     this.virtualScroll.on('scroll', this.onVirtualScroll)
 
-    this.overflowObserver = new OverflowObserver(this.rootElement, {
-      orientation,
-    })
-    this.overflowObserver.on('change', this.onOverflowChange)
+    // this.overflowObserver = new OverflowObserver(this.rootElement, {
+    //   orientation,
+    // })
+    // this.overflowObserver.on('change', this.onOverflowChange)
+
+    this.computedStyle = getComputedStyle(this.rootElement)
+    this.checkOverflow()
   }
 
   destroy() {
@@ -143,7 +145,7 @@ export default class Lenis {
 
     this.virtualScroll.destroy()
     this.dimensions.destroy()
-    this.overflowObserver.destroy()
+    // this.overflowObserver.destroy()
 
     this.rootElement.classList.remove('lenis')
     this.rootElement.classList.remove('lenis-smooth')
@@ -239,13 +241,13 @@ export default class Lenis {
     })
   }
 
-  onOverflowChange = (isVisible) => {
-    if (isVisible) {
-      this.start()
-    } else {
-      this.stop()
-    }
-  }
+  // onOverflowChange = (isVisible) => {
+  //   if (isVisible) {
+  //     this.start()
+  //   } else {
+  //     this.stop()
+  //   }
+  // }
 
   resize() {
     this.dimensions.resize()
@@ -285,9 +287,29 @@ export default class Lenis {
     this.reset()
   }
 
+  checkOverflow() {
+    const overflow =
+      this.computedStyle[
+        this.orientation === 'horizontal' ? 'overflowX' : 'overflowY'
+      ]
+    const isOverflowVisible = !['hidden', 'clip'].includes(overflow)
+
+    if (isOverflowVisible !== this.isOverflowVisible) {
+      if (isOverflowVisible) {
+        this.start()
+      } else {
+        this.stop()
+      }
+    }
+
+    this.isOverflowVisible = isOverflowVisible
+  }
+
   raf(time) {
     const deltaTime = time - (this.time || time)
     this.time = time
+
+    this.checkOverflow()
 
     this.animate.advance(deltaTime * 0.001)
   }

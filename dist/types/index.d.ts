@@ -88,7 +88,7 @@ export default class Lenis {
     animate: Animate;
     emitter: Emitter;
     virtualScroll: VirtualScroll;
-    overflowObserver: OverflowObserver;
+    computedStyle: CSSStyleDeclaration;
     destroy(): void;
     on(event: any, callback: any): () => void;
     off(event: any, callback: any): void;
@@ -100,7 +100,6 @@ export default class Lenis {
         deltaY: any;
         event: any;
     }) => void;
-    onOverflowChange: (isVisible: any) => void;
     resize(): void;
     emit(): void;
     onScroll: () => void;
@@ -109,6 +108,8 @@ export default class Lenis {
     isLocked: boolean;
     start(): void;
     stop(): void;
+    checkOverflow(): void;
+    isOverflowVisible: any;
     raf(time: any): void;
     time: any;
     scrollTo(target: any, { offset, immediate, lock, duration, easing, lerp, onComplete, force, programmatic, }?: {
@@ -136,4 +137,3 @@ import { Dimensions } from './dimensions';
 import { Animate } from './animate';
 import { Emitter } from './emitter';
 import { VirtualScroll } from './virtual-scroll';
-import { OverflowObserver } from './overflow-observer';

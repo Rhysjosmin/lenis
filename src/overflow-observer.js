@@ -5,6 +5,8 @@ export class OverflowObserver {
     this.element = element
     this.orientation = orientation
 
+    this.computedStyle = getComputedStyle(element)
+
     this.emitter = new Emitter()
 
     let oldClassList = Object.values(element.classList)
@@ -45,7 +47,7 @@ export class OverflowObserver {
   }
 
   check() {
-    const { overflowX, overflowY } = getComputedStyle(this.element)
+    const { overflowX, overflowY } = this.computedStyle
     const overflow = this.orientation === 'horizontal' ? overflowX : overflowY
     const isVisible = !['hidden', 'clip'].includes(overflow)
 
